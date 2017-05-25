@@ -1,0 +1,7 @@
+[package]
+name = "GameServer"
+version = "0.1.0"
+authors = ["matt <matt@mattgeorge.net>"]
+
+[dependencies]
+connect_four = { git = "https://github.com/eecs395rust/ConnectFour.git" }
