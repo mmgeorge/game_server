@@ -76,7 +76,7 @@ Server executable program for ConnectFour project. The server communicates with 
 ```
 ---
 
-#### Get a specific game with id 1
+#### Get a specific game with id 0
 `GET  <hostname>:8080/api/connect_four.svc/Games(0)`
 
 ##### Response Payload:
