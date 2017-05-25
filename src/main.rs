@@ -74,8 +74,8 @@ impl EntitySet for Games {
     
     fn read_list(&self) -> Res
     {
-        let id = -1;
-        let id = || -> i64 {id + 1; id};
+        let mut id: i64 = -1;
+        let mut id = || -> i64 {id += 1; id};
         
         let games = GameServer::select_all();
         let ogames: Vec<Game> = games.into_iter().map(|game| convert(game, id() as usize)).collect();

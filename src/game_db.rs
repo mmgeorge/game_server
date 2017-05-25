@@ -37,7 +37,7 @@ impl GameServer {
     {
         let ref mut games = *GAMES.lock().unwrap();
         games.push(game);
-        games.len()
+        games.len() - 1
     }
 }
 
