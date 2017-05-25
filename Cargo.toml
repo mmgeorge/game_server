@@ -1,7 +1,12 @@
 [package]
-name = "GameServer"
+name = "game_server"
 version = "0.1.0"
 authors = ["matt <matt@mattgeorge.net>"]
 
 [dependencies]
 connect_four = { git = "https://github.com/eecs395rust/ConnectFour.git" }
+odata = { git = "https://github.com/mmgeorge/rust-odata.git"}
+serde_json = "1.0"
+serde_derive = "1.0.4"
+serde = "1.0.4"
+lazy_static = "0.2"
