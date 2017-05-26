@@ -45,7 +45,7 @@ The example can be found [here](https://github.com/mmgeorge/game_client_example)
 - [hyper](https://hyper.rs/hyper/v0.10.9/hyper/client/struct.Client.html) client docs
 
 ## REST Examples
-#### Query metadata document
+#### Query metadata document (Informational overview of the service)
 
 `GET  <hostname>:8080/api/connect_four.svc/$metadata`
 
