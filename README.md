@@ -11,7 +11,7 @@ serde_json = "1.0"
 serde_derive = "1.0.4"   
 serde = "1.0.4"          
 ```
-Now let's add in our dependencies. serde is used for json serialization/deserialization, and hyper will allow us to easily start up a client. 
+Now let's extern/use our dependencies. serde is used for json serialization/deserialization, and hyper will allow us to easily start up a client. 
 #### main.rs
 ```
 #[macro_use] extern crate serde_json;  
