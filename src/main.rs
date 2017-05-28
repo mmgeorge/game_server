@@ -45,7 +45,7 @@ fn convert(game: ConnectK, id: usize) -> Game
     let board: String = game.board_linear().into_iter().map(|x| x.to_string()).collect();
     Game::new(id as i64, game.width as i64, game.height as i64, game.k as i16,
               match game.curr_player { Player::One => 1, Player::Two => 2 },
-              false,
+              game.ended,
               board)
 }
 
