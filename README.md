@@ -193,7 +193,7 @@ Calls `game.insert(move)` for designated game.
 ```
 {
   "id": 1,
-  "move": 0,
+  "move": 0
 }
 ```
 
