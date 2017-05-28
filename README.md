@@ -40,6 +40,31 @@ fn main() {
 }                                                                                 
 ```
 The example can be found [here](https://github.com/mmgeorge/game_client_example).
+
+Additionally, the tests in main.rs may be useful to view. For instance, to play a move: 
+```
+// Lets now play a move                                                         
+let url = "http://localhost:8080/api/connect_four.svc/play_move";               
+let value = json!({                                                             
+    "id": id,                                                                   
+    "move": 0                                                                   
+});                                                                             
+println!("{}", &value.to_string());                                             
+client.post(url).body(&value.to_string()).send().unwrap();                      
+                                                                                
+// Check that the move was actually played                                      
+println!("Checking Move Played");                                               
+let url = &format!("http://localhost:8080/api/connect_four.svc/Games({})", id); 
+println!("{}", url);                                                            
+let res = client.get(url).send().unwrap();                                      
+assert_eq!(res.status, StatusCode::Ok);                                         
+                                                                                
+let data: Value = from_reader(res).expect("Unable to parse response!");         
+let board = data["board"].as_str().expect("Unable to parse id!");               
+assert_eq!(board.chars().nth(0).unwrap(), '1');                                 
+```
+
+
 ##### Additional Reading: 
 - [serde_json](https://docs.serde.rs/serde_json/) docs
 - [hyper](https://hyper.rs/hyper/v0.10.9/hyper/client/struct.Client.html) client docs
@@ -157,4 +182,21 @@ The example can be found [here](https://github.com/mmgeorge/game_client_example)
   "k": 4,
   "width": 5
 }
+```
+
+
+#### Play a move
+Calls `game.insert()` for designated game with the passed move.
+`POST  <hostname>:8080/api/connect_four.svc/Games`
+##### Request Body:
+```
+{
+  "id": 1,
+  "move": 0,
+}
+```
+
+##### Response Payload:
+```
+None
 ```
