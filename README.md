@@ -188,7 +188,7 @@ assert_eq!(board.chars().nth(0).unwrap(), '1');
 #### Play a move
 Calls `game.insert(move)` for designated game.
 
-`POST  <hostname>:8080/api/connect_four.svc/Games`
+`POST  <hostname>:8080/api/connect_four.svc/play_move`
 ##### Request Body:
 ```
 {
