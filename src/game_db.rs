@@ -6,7 +6,7 @@ use connect_four::connect_four::{ConnectK, Player};
 /// Emulate a database server
 lazy_static! {
     // Vector index = key
-    static ref GAMES: Mutex<Vec<ConnectK>> = {
+    pub static ref GAMES: Mutex<Vec<ConnectK>> = {
         let mut vec = Vec::new();
         vec.push(ConnectK::new(5, 7, 4, Player::One));
 

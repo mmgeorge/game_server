@@ -5,6 +5,8 @@
 //! POST localhost:8080/api/connect_four.svc/Games     ->  create a new game
 //!      with body = {"curr_player": 1, "height": 7, "id": 4, "k": 4,"width": 5 }
 
+#[cfg(test)] 
+extern crate hyper;
 
 extern crate connect_four;
 #[macro_use] extern crate odata;
@@ -19,7 +21,7 @@ use odata::model::ModelBuilder;
 use odata::service::{ServiceBuilder, Res, Error}; 
 use odata::entity::*;
 
-use game_db::GameServer;
+use game_db::{GameServer, GAMES};
 use connect_four::connect_four::{ConnectK, Player};
 
 
@@ -30,6 +32,7 @@ defEntity!(Game(keys => id) {
     height: Int64,
     k: Int16,
     curr_player: Int16,
+    ended: Boolean,
     board: String
 });
 
@@ -42,6 +45,7 @@ fn convert(game: ConnectK, id: usize) -> Game
     let board: String = game.board_linear().into_iter().map(|x| x.to_string()).collect();
     Game::new(id as i64, game.width as i64, game.height as i64, game.k as i16,
               match game.curr_player { Player::One => 1, Player::Two => 2 },
+              false,
               board)
 }
 
@@ -58,9 +62,8 @@ impl EntitySet for Games {
                                       2 => Player::Two,
                                       _ => panic!("Found unacceptable player number!")
                                   });
-        //let game = convert(gamek.clone());
         let id = GameServer::insert(gamek.clone());
-        Res::Succ(Some(json!(convert(gamek, id))))
+        Res::Created(json!(convert(gamek, id)))
     }
     
     fn read(&self, key: String) -> Res
@@ -78,16 +81,32 @@ impl EntitySet for Games {
         let mut id = || -> i64 {id += 1; id};
         
         let games = GameServer::select_all();
-        let ogames: Vec<Game> = games.into_iter().map(|game| convert(game, id() as usize)).collect();
+        let ogames: Vec<Game> = games.into_iter()
+            .map(|game| convert(game, id() as usize))
+            .collect();
         
         Res::Succ(Some(json!(ogames)))
     }
 }
 
 
-fn main() {
+fn run()
+{
     let model = ModelBuilder::new("connect_four.svc")
         .add(Games::declare())
+        .action("play_move", vec![edm::Type::String], |v: serde_json::Value| -> Res {
+
+            let id = v["id"].as_u64().expect("Could not parse id");
+            let player_move = v["move"].as_u64().expect("Could not parse move");
+            
+            match (*GAMES.lock().expect("Could not unwrap")).get_mut(id as usize) {
+                Some(game) => {
+                    game.insert(player_move as usize).expect("Error when inserting");
+                    Res::Succ(None)
+                },
+                None => Res::Err(Error::NotFound(String::from("Games")))
+            }
+        })
         .build();
 
     let svc = ServiceBuilder::new("api")
@@ -96,5 +115,91 @@ fn main() {
 
     svc.start();
 }
+
+
+fn main()
+{
+    run();
+}
+
+
+#[cfg(test)]
+mod test {
+    
+    use super::*;
+    use std::thread;
+    use std::time::Duration;
+    use hyper::Client;
+    use hyper::status::StatusCode;
+    use serde_json::{Value, from_reader};
+    
+    #[test]
+    fn check_service()
+    {
+        thread::spawn(move || { run(); });
+
+        // Technically a race ...but we are lazy so let's assume 200 msec is
+        // enough for server to startup
+        thread::sleep(Duration::from_millis(200));
+
+        { // Test read list
+            println!("Checking Read List");
+            let client = Client::new();
+            let url = "http://localhost:8080/api/connect_four.svc/Games";
+            let res = client.get(url).send().unwrap();
+            assert_eq!(res.status, StatusCode::Ok);
+        }
+
+        { // Test create
+            println!("Checking Create");
+            let client = Client::new();
+            let url = "http://localhost:8080/api/connect_four.svc/Games";
+            let value = json!({
+                "curr_player": 1,
+                "height": 7,
+                "width": 5,
+                "k": 4
+            });
+
+            //The response includes the id of the game we created
+            let res = client.post(url).body(&value.to_string()).send().unwrap();
+            assert_eq!(res.status, StatusCode::Created);
+
+            //Parse response body
+            let data: Value = from_reader(res).expect("Unable to parse response!");
+            let id = data["id"].as_u64().expect("Unable to parse id!");
+            
+            //We should now be able to get the item we created
+            println!("Checking Read Created");
+            let url = &format!("http://localhost:8080/api/connect_four.svc/Games({})", id);
+            let res = client.get(url).send().unwrap();
+            assert_eq!(res.status, StatusCode::Ok);
+
+            // Lets now play a move
+            let url = "http://localhost:8080/api/connect_four.svc/play_move";
+            let value = json!({
+                "id": id,
+                "move": 0
+            });
+            println!("{}", &value.to_string());
+            client.post(url).body(&value.to_string()).send().unwrap();
+
+            // Check that the move was actually played
+            println!("Checking Move Played");
+            let url = &format!("http://localhost:8080/api/connect_four.svc/Games({})", id);
+            println!("{}", url);
+            let res = client.get(url).send().unwrap();
+            assert_eq!(res.status, StatusCode::Ok);
+
+            let data: Value = from_reader(res).expect("Unable to parse response!");
+            let board = data["board"].as_str().expect("Unable to parse id!");
+            assert_eq!(board.chars().nth(0).unwrap(), '1');
+        }
+
+    }
+}
+
+
+
 
 

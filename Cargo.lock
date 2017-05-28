@@ -3,6 +3,7 @@ name = "game_server"
 version = "0.1.0"
 dependencies = [
  "connect_four 0.1.0 (git+https://github.com/eecs395rust/ConnectFour.git)",
+ "hyper 0.10.10 (registry+https://github.com/rust-lang/crates.io-index)",
  "lazy_static 0.2.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "odata 0.1.0 (git+https://github.com/mmgeorge/rust-odata.git)",
  "serde 1.0.8 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -26,7 +27,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [[package]]
 name = "connect_four"
 version = "0.1.0"
-source = "git+https://github.com/eecs395rust/ConnectFour.git#8db43222ee431f0921cdd1ca163e644a78c8e0d5"
+source = "git+https://github.com/eecs395rust/ConnectFour.git#a3b4978abcc77406a19d8eca54f301abbeca4a59"
 
 [[package]]
 name = "dtoa"
@@ -47,8 +48,8 @@ dependencies = [
  "httparse 1.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "language-tags 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.3.8 (registry+https://github.com/rust-lang/crates.io-index)",
- "mime 0.2.4 (registry+https://github.com/rust-lang/crates.io-index)",
- "num_cpus 1.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "mime 0.2.5 (registry+https://github.com/rust-lang/crates.io-index)",
+ "num_cpus 1.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "rustc_version 0.1.7 (registry+https://github.com/rust-lang/crates.io-index)",
  "time 0.1.37 (registry+https://github.com/rust-lang/crates.io-index)",
  "traitobject 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -108,7 +109,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "mime"
-version = "0.2.4"
+version = "0.2.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "log 0.3.8 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -121,7 +122,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "num_cpus"
-version = "1.4.0"
+version = "1.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "libc 0.2.23 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -130,7 +131,7 @@ dependencies = [
 [[package]]
 name = "odata"
 version = "0.1.0"
-source = "git+https://github.com/mmgeorge/rust-odata.git#e13084fbc86d8e93965007d3d0d014d4f3e98787"
+source = "git+https://github.com/mmgeorge/rust-odata.git#cbd45cf2db9e827b122851997f52def33e669021"
 dependencies = [
  "hyper 0.10.10 (registry+https://github.com/rust-lang/crates.io-index)",
  "lazy_static 0.2.8 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -297,9 +298,9 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 "checksum libc 0.2.23 (registry+https://github.com/rust-lang/crates.io-index)" = "e7eb6b826bfc1fdea7935d46556250d1799b7fe2d9f7951071f4291710665e3e"
 "checksum log 0.3.8 (registry+https://github.com/rust-lang/crates.io-index)" = "880f77541efa6e5cc74e76910c9884d9859683118839d6a1dc3b11e63512565b"
 "checksum matches 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)" = "efd7622e3022e1a6eaa602c4cea8912254e5582c9c692e9167714182244801b1"
-"checksum mime 0.2.4 (registry+https://github.com/rust-lang/crates.io-index)" = "9d69889cdc6336ed56b174514ce876c4c3dc564cc23dd872e7bca589bb2a36c8"
+"checksum mime 0.2.5 (registry+https://github.com/rust-lang/crates.io-index)" = "5e9999fd9cebacbead342fc245a17e7784f89c3747292b6aa83f26a13dc40e3f"
 "checksum num-traits 0.1.37 (registry+https://github.com/rust-lang/crates.io-index)" = "e1cbfa3781f3fe73dc05321bed52a06d2d491eaa764c52335cf4399f046ece99"
-"checksum num_cpus 1.4.0 (registry+https://github.com/rust-lang/crates.io-index)" = "ca313f1862c7ec3e0dfe8ace9fa91b1d9cb5c84ace3d00f5ec4216238e93c167"
+"checksum num_cpus 1.5.0 (registry+https://github.com/rust-lang/crates.io-index)" = "f6e850c7f35c3de263e6094e819f6b4b9c09190ff4438fc6dec1aef1568547bc"
 "checksum odata 0.1.0 (git+https://github.com/mmgeorge/rust-odata.git)" = "<none>"
 "checksum quote 0.3.15 (registry+https://github.com/rust-lang/crates.io-index)" = "7a6e920b65c65f10b2ae65c831a81a073a89edd28c7cce89475bff467ab4167a"
 "checksum redox_syscall 0.1.17 (registry+https://github.com/rust-lang/crates.io-index)" = "29dbdfd4b9df8ab31dec47c6087b7b13cbf4a776f335e4de8efba8288dda075b"
