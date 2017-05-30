@@ -22,7 +22,7 @@ use odata::service::{ServiceBuilder, Res, Error};
 use odata::entity::*;
 
 use game_db::{GameServer, GAMES};
-use connect_four::connect_four::{ConnectK, Player};
+use connect_four::connect_four::{ConnectK, Player, GameStatus};
 
 
 /// The entiy type for board
@@ -32,7 +32,7 @@ defEntity!(Game(keys => id) {
     height: Int64,
     k: Int16,
     curr_player: Int16,
-    ended: Boolean,
+    status: String,
     board: String
 });
 
@@ -44,8 +44,16 @@ fn convert(game: ConnectK, id: usize) -> Game
 {
     let board: String = game.board_linear().into_iter().map(|x| x.to_string()).collect();
     Game::new(id as i64, game.width as i64, game.height as i64, game.k as i16,
-              match game.curr_player { Player::One => 1, Player::Two => 2 },
-              game.ended,
+              match game.curr_player {
+                  Player::One => 1,
+                  Player::Two => 2
+              },
+              match game.status {
+                  GameStatus::InProcess => String::from("InProcess"),
+                  GameStatus::PlayerOneWin => String::from("PlayerOneWin"),
+                  GameStatus::PlayerTwoWin => String::from("PlayerTwoWin"),
+                  GameStatus::Tie => String::from("Tie")
+              },
               board)
 }
 
