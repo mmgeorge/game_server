@@ -111,7 +111,7 @@ fn run()
                 Some(game) => {
                     match game.insert(player_move as usize) {
                         Ok(_) => Res::Succ(None),
-                        _     => Res::Err(Error::NotFound(String::from("play_move Parameter")))
+                        _     => Res::Err(Error::InvalidParameter)
                     }
                     
                 },
