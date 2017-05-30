@@ -109,8 +109,11 @@ fn run()
             
             match (*GAMES.lock().expect("Could not unwrap")).get_mut(id as usize) {
                 Some(game) => {
-                    game.insert(player_move as usize).expect("Error when inserting");
-                    Res::Succ(None)
+                    match game.insert(player_move as usize) {
+                        Ok(_) => Res::Succ(None),
+                        _     => Res::Err(Error::NotFound(String::from("play_move Parameter")))
+                    }
+                    
                 },
                 None => Res::Err(Error::NotFound(String::from("Games")))
             }
