@@ -60,7 +60,7 @@ let res = client.get(url).send().unwrap();
 assert_eq!(res.status, StatusCode::Ok);                                         
                                                                                 
 let data: Value = from_reader(res).expect("Unable to parse response!");         
-let board = data["board"].as_str().expect("Unable to parse id!");               
+let board = data["board"].as_str().expect("Unable to parse board!");               
 assert_eq!(board.chars().nth(0).unwrap(), '1');                                 
 ```
 
