@@ -27,7 +27,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [[package]]
 name = "connect_four"
 version = "0.1.0"
-source = "git+https://github.com/eecs395rust/ConnectFour.git#0e7e21c2a7853a76732e45e13d2d4f63ca64c238"
+source = "git+https://github.com/eecs395rust/ConnectFour.git#225d3d547f884d0d9b0b5026dee0798fe224daf7"
 
 [[package]]
 name = "dtoa"
