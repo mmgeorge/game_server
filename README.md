@@ -1,5 +1,5 @@
 # game_server
-Server executable program for ConnectFour project. The server communicates with clients via oData. See examples below.
+Server executable program for ConnectFour project. Creates a ConnectK game server that listens on port 8080 and communicates with the client via oData. 
 
 ## Quickstart Client Example
 Let's create a quick simple client program that checks the status of a particular game. First add the following dependencies:
@@ -122,6 +122,7 @@ assert_eq!(board.chars().nth(0).unwrap(), '1');
     "height": 7,
     "id": 0,
     "k": 4,
+    "status": "InProcess", 
     "width": 5
   },
   {
@@ -130,6 +131,7 @@ assert_eq!(board.chars().nth(0).unwrap(), '1');
     "height": 7,
     "id": 1,
     "k": 4,
+    "status": "InProcess",
     "width": 5
   },
   {
@@ -138,6 +140,7 @@ assert_eq!(board.chars().nth(0).unwrap(), '1');
     "height": 7,
     "id": 2,
     "k": 4,
+    "status": "InProcess",
     "width": 5
   },
 ]
@@ -155,6 +158,7 @@ assert_eq!(board.chars().nth(0).unwrap(), '1');
   "height": 7,
   "id": 0,
   "k": 4,
+  "status": "InProcess",
   "width": 5
 }
 ```
@@ -165,7 +169,6 @@ assert_eq!(board.chars().nth(0).unwrap(), '1');
 ##### Request Body:
 ```
 {
-  "curr_player": 1,
   "height": 7,
   "k": 4,
   "width": 5
@@ -180,6 +183,7 @@ assert_eq!(board.chars().nth(0).unwrap(), '1');
   "height": 7,
   "id": 1,
   "k": 4,
+  "status": "InProcess",
   "width": 5
 }
 ```
