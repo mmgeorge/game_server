@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="rustdoc">
-    <meta name="description" content="Source to the Rust file `main.rs`.">
+    <meta name="description" content="Source to the Rust file `/cloud/classes/rust/game_server/src/main.rs`.">
     <meta name="keywords" content="rust, rustlang, rust-lang">
 
     <title>main.rs.html -- source</title>
@@ -17,7 +17,7 @@
     
     
 </head>
-<body class="rustdoc source">
+<body class="rustdoc">
     <!--[if lte IE 8]>
     <div class="warning">
         This old browser is unsupported and will most likely display funky
@@ -43,7 +43,7 @@
         </form>
     </nav>
 
-    <section id='main' class="content"><pre class="line-numbers"><span id="1">  1</span>
+    <section id='main' class="content source"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -259,214 +259,296 @@
 <span id="214">214</span>
 <span id="215">215</span>
 <span id="216">216</span>
-</pre><pre class="rust ">
-<span class="doccomment">//! Creates a game server that listens on port 8080;</span>
-<span class="doccomment">//! GET  localhost:8080/api/connect_four.svc/$metadata -&gt;  metadata</span>
-<span class="doccomment">//! GET  localhost:8080/api/connect_four.svc/Games     -&gt;  list of games</span>
-<span class="doccomment">//! GET  localhost:8080/api/connect_four.svc/Games(0)  -&gt;  game with id=0</span>
-<span class="doccomment">//! POST localhost:8080/api/connect_four.svc/Games     -&gt;  create a new game</span>
-<span class="doccomment">//!      with body = {&quot;curr_player&quot;: 1, &quot;height&quot;: 7, &quot;id&quot;: 4, &quot;k&quot;: 4,&quot;width&quot;: 5 }</span>
+<span id="217">217</span>
+<span id="218">218</span>
+<span id="219">219</span>
+<span id="220">220</span>
+<span id="221">221</span>
+<span id="222">222</span>
+<span id="223">223</span>
+<span id="224">224</span>
+<span id="225">225</span>
+<span id="226">226</span>
+<span id="227">227</span>
+<span id="228">228</span>
+<span id="229">229</span>
+<span id="230">230</span>
+<span id="231">231</span>
+<span id="232">232</span>
+<span id="233">233</span>
+<span id="234">234</span>
+<span id="235">235</span>
+<span id="236">236</span>
+<span id="237">237</span>
+<span id="238">238</span>
+<span id="239">239</span>
+<span id="240">240</span>
+<span id="241">241</span>
+<span id="242">242</span>
+<span id="243">243</span>
+<span id="244">244</span>
+<span id="245">245</span>
+<span id="246">246</span>
+<span id="247">247</span>
+<span id="248">248</span>
+<span id="249">249</span>
+<span id="250">250</span>
+<span id="251">251</span>
+<span id="252">252</span>
+<span id="253">253</span>
+<span id="254">254</span>
+<span id="255">255</span>
+<span id="256">256</span>
+<span id="257">257</span>
+</pre><pre class='rust '>
+<span class='doccomment'>//! Creates a ConnectK game server that listens on port 8080;</span>
+<span class='doccomment'>//! The server allows for client interaction using oData, and enables only</span>
+<span class='doccomment'>//! direct support for a few of the necessary functions for the service.</span>
+<span class='doccomment'>//! See the README for a detailed usage guide.</span>
+<span class='doccomment'>//!</span>
+<span class='doccomment'>//! A real system would likely use a database instead of global vector, but</span>
+<span class='doccomment'>//! it works for our purposes without going crazy on the scope creep. lazy_static!</span>
+<span class='doccomment'>//! is used for this purpose (see game_db.rs)</span>
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span> 
-<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">hyper</span>;
 
-<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">connect_four</span>;
-<span class="attribute">#[<span class="ident">macro_use</span>]</span> <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">odata</span>;
-<span class="attribute">#[<span class="ident">macro_use</span>]</span> <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">serde_derive</span>;
-<span class="attribute">#[<span class="ident">macro_use</span>]</span> <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">serde_json</span>;
-<span class="attribute">#[<span class="ident">macro_use</span>]</span> <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">lazy_static</span>;
+<span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>test</span>)]</span> 
+<span class='kw'>extern</span> <span class='kw'>crate</span> <span class='ident'>hyper</span>; 
 
-<span class="kw">mod</span> <span class="ident">game_db</span>;
+<span class='kw'>extern</span> <span class='kw'>crate</span> <span class='ident'>connect_four</span>;
+<span class='attribute'>#[<span class='ident'>macro_use</span>]</span> <span class='kw'>extern</span> <span class='kw'>crate</span> <span class='ident'>odata</span>;
+<span class='attribute'>#[<span class='ident'>macro_use</span>]</span> <span class='kw'>extern</span> <span class='kw'>crate</span> <span class='ident'>serde_derive</span>;
+<span class='attribute'>#[<span class='ident'>macro_use</span>]</span> <span class='kw'>extern</span> <span class='kw'>crate</span> <span class='ident'>serde_json</span>;
+<span class='attribute'>#[<span class='ident'>macro_use</span>]</span> <span class='kw'>extern</span> <span class='kw'>crate</span> <span class='ident'>lazy_static</span>;
 
-<span class="kw">use</span> <span class="ident">odata</span>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="ident">odata</span>::<span class="ident">model</span>::<span class="ident">ModelBuilder</span>;
-<span class="kw">use</span> <span class="ident">odata</span>::<span class="ident">service</span>::{<span class="ident">ServiceBuilder</span>, <span class="ident">Res</span>, <span class="ident">Error</span>}; 
-<span class="kw">use</span> <span class="ident">odata</span>::<span class="ident">entity</span>::<span class="kw-2">*</span>;
+<span class='kw'>mod</span> <span class='ident'>game_db</span>;
 
-<span class="kw">use</span> <span class="ident">game_db</span>::{<span class="ident">GameServer</span>, <span class="ident">GAMES</span>};
-<span class="kw">use</span> <span class="ident">connect_four</span>::<span class="ident">connect_four</span>::{<span class="ident">ConnectK</span>, <span class="ident">Player</span>, <span class="ident">GameStatus</span>};
+<span class='kw'>use</span> <span class='ident'>odata</span>::<span class='kw-2'>*</span>;
+<span class='kw'>use</span> <span class='ident'>odata</span>::<span class='ident'>model</span>::<span class='ident'>ModelBuilder</span>;
+<span class='kw'>use</span> <span class='ident'>odata</span>::<span class='ident'>service</span>::{<span class='ident'>ServiceBuilder</span>, <span class='ident'>Res</span>, <span class='ident'>Error</span>}; 
+<span class='kw'>use</span> <span class='ident'>odata</span>::<span class='ident'>entity</span>::<span class='kw-2'>*</span>;
+
+<span class='kw'>use</span> <span class='ident'>game_db</span>::{<span class='ident'>GameServer</span>, <span class='ident'>GAMES</span>};
+<span class='kw'>use</span> <span class='ident'>connect_four</span>::<span class='ident'>connect_four</span>::{<span class='ident'>ConnectK</span>, <span class='ident'>Player</span>, <span class='ident'>GameStatus</span>};
 
 
-<span class="doccomment">/// The entiy type for board</span>
-<span class="macro">defEntity</span><span class="macro">!</span>(<span class="ident">Game</span>(<span class="ident">keys</span> <span class="op">=&gt;</span> <span class="ident">id</span>) {
-    <span class="ident">id</span>: <span class="ident">Int64</span>,
-    <span class="ident">width</span>: <span class="ident">Int64</span>,
-    <span class="ident">height</span>: <span class="ident">Int64</span>,
-    <span class="ident">k</span>: <span class="ident">Int16</span>,
-    <span class="ident">curr_player</span>: <span class="ident">Int16</span>,
-    <span class="ident">status</span>: <span class="ident">String</span>,
-    <span class="ident">board</span>: <span class="ident">String</span>
+<span class='doccomment'>/// Declares Game, the EntityType for the ConnectK class. This will get serialized</span>
+<span class='doccomment'>/// by serde and sent as oData. </span>
+<span class='macro'>defEntity</span><span class='macro'>!</span>(<span class='ident'>Game</span>(<span class='ident'>keys</span> <span class='op'>=&gt;</span> <span class='ident'>id</span>) {
+    <span class='ident'>id</span>: <span class='ident'>Int64</span>,
+    <span class='ident'>width</span>: <span class='ident'>Int64</span>,
+    <span class='ident'>height</span>: <span class='ident'>Int64</span>,
+    <span class='ident'>k</span>: <span class='ident'>Int16</span>,
+    <span class='ident'>curr_player</span>: <span class='ident'>Int16</span>,
+    <span class='ident'>status</span>: <span class='ident'>String</span>,
+    <span class='ident'>board</span>: <span class='ident'>String</span>
 });
 
-<span class="macro">defEntitySet</span><span class="macro">!</span>(<span class="ident">Games</span>, <span class="ident">Game</span>);
+
+<span class='doccomment'>/// Declares Games as an EntitySet containing entities of type Game. Once added to</span>
+<span class='doccomment'>/// the model, it will be reachable via &lt;...&gt;/Games(I) where I can be used to access</span>
+<span class='doccomment'>/// a game correponding to the id. These are stored in a vector of ConnectK.</span>
+<span class='macro'>defEntitySet</span><span class='macro'>!</span>(<span class='ident'>Games</span>, <span class='ident'>Game</span>);
 
 
-<span class="doccomment">/// Converts internal ConnectK representation to oData model</span>
-<span class="kw">fn</span> <span class="ident">convert</span>(<span class="ident">game</span>: <span class="ident">ConnectK</span>, <span class="ident">id</span>: <span class="ident">usize</span>) <span class="op">-&gt;</span> <span class="ident">Game</span>
+<span class='doccomment'>/// Convert the internal ConnectK representation to the serializable Game Entity type.</span>
+<span class='doccomment'>/// Major difference here is that enums are converted to either numbers/strings, and</span>
+<span class='doccomment'>/// the board is linerized and converted to a string.</span>
+<span class='kw'>fn</span> <span class='ident'>convert</span>(<span class='ident'>game</span>: <span class='ident'>ConnectK</span>, <span class='ident'>id</span>: <span class='ident'>usize</span>) <span class='op'>-&gt;</span> <span class='ident'>Game</span>
 {
-    <span class="kw">let</span> <span class="ident">board</span>: <span class="ident">String</span> <span class="op">=</span> <span class="ident">game</span>.<span class="ident">board_linear</span>().<span class="ident">into_iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">to_string</span>()).<span class="ident">collect</span>();
-    <span class="ident">Game</span>::<span class="ident">new</span>(<span class="ident">id</span> <span class="kw">as</span> <span class="ident">i64</span>, <span class="ident">game</span>.<span class="ident">width</span> <span class="kw">as</span> <span class="ident">i64</span>, <span class="ident">game</span>.<span class="ident">height</span> <span class="kw">as</span> <span class="ident">i64</span>, <span class="ident">game</span>.<span class="ident">k</span> <span class="kw">as</span> <span class="ident">i16</span>,
-              <span class="kw">match</span> <span class="ident">game</span>.<span class="ident">curr_player</span> {
-                  <span class="ident">Player</span>::<span class="ident">One</span> <span class="op">=&gt;</span> <span class="number">1</span>,
-                  <span class="ident">Player</span>::<span class="ident">Two</span> <span class="op">=&gt;</span> <span class="number">2</span>
-              },
-              <span class="kw">match</span> <span class="ident">game</span>.<span class="ident">status</span> {
-                  <span class="ident">GameStatus</span>::<span class="ident">InProcess</span> <span class="op">=&gt;</span> <span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;InProcess&quot;</span>),
-                  <span class="ident">GameStatus</span>::<span class="ident">PlayerOneWin</span> <span class="op">=&gt;</span> <span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;PlayerOneWin&quot;</span>),
-                  <span class="ident">GameStatus</span>::<span class="ident">PlayerTwoWin</span> <span class="op">=&gt;</span> <span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;PlayerTwoWin&quot;</span>),
-                  <span class="ident">GameStatus</span>::<span class="ident">Tie</span> <span class="op">=&gt;</span> <span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;Tie&quot;</span>)
-              },
-              <span class="ident">board</span>)
+    <span class='comment'>// Convert game board to a string</span>
+    <span class='kw'>let</span> <span class='ident'>board</span>: <span class='ident'>String</span> <span class='op'>=</span> <span class='ident'>game</span>.<span class='ident'>board_linear</span>().<span class='ident'>into_iter</span>().<span class='ident'>map</span>(<span class='op'>|</span><span class='ident'>x</span><span class='op'>|</span> <span class='ident'>x</span>.<span class='ident'>to_string</span>()).<span class='ident'>collect</span>();
+
+    <span class='comment'>// Game::new is provided to us by defEntity!</span>
+    <span class='ident'>Game</span>::<span class='ident'>new</span>(
+        <span class='ident'>id</span> <span class='kw'>as</span> <span class='ident'>i64</span>,
+        <span class='ident'>game</span>.<span class='ident'>width</span> <span class='kw'>as</span> <span class='ident'>i64</span>,
+        <span class='ident'>game</span>.<span class='ident'>height</span> <span class='kw'>as</span> <span class='ident'>i64</span>,
+        <span class='ident'>game</span>.<span class='ident'>k</span> <span class='kw'>as</span> <span class='ident'>i16</span>,
+
+        <span class='kw'>match</span> <span class='ident'>game</span>.<span class='ident'>curr_player</span> {
+            <span class='ident'>Player</span>::<span class='ident'>One</span> <span class='op'>=&gt;</span> <span class='number'>1</span>,
+            <span class='ident'>Player</span>::<span class='ident'>Two</span> <span class='op'>=&gt;</span> <span class='number'>2</span>
+        },
+
+        <span class='kw'>match</span> <span class='ident'>game</span>.<span class='ident'>status</span> {
+            <span class='ident'>GameStatus</span>::<span class='ident'>InProcess</span> <span class='op'>=&gt;</span> <span class='ident'>String</span>::<span class='ident'>from</span>(<span class='string'>&quot;InProcess&quot;</span>),
+            <span class='ident'>GameStatus</span>::<span class='ident'>PlayerOneWin</span> <span class='op'>=&gt;</span> <span class='ident'>String</span>::<span class='ident'>from</span>(<span class='string'>&quot;PlayerOneWin&quot;</span>),
+            <span class='ident'>GameStatus</span>::<span class='ident'>PlayerTwoWin</span> <span class='op'>=&gt;</span> <span class='ident'>String</span>::<span class='ident'>from</span>(<span class='string'>&quot;PlayerTwoWin&quot;</span>),
+            <span class='ident'>GameStatus</span>::<span class='ident'>Tie</span> <span class='op'>=&gt;</span> <span class='ident'>String</span>::<span class='ident'>from</span>(<span class='string'>&quot;Tie&quot;</span>)
+        },
+
+        <span class='ident'>board</span>)
 }
 
 
-<span class="kw">impl</span> <span class="ident">EntitySet</span> <span class="kw">for</span> <span class="ident">Games</span> {
+<span class='doccomment'>/// Here we implement the EntitySet trait for our Games EntitySet. We only directly implement</span>
+<span class='doccomment'>/// the functions we need. For mutating state, we provide an oData action &quot;play_move&quot; that</span>
+<span class='doccomment'>/// is tied to the model. </span>
+<span class='kw'>impl</span> <span class='ident'>EntitySet</span> <span class='kw'>for</span> <span class='ident'>Games</span> {
 
-    <span class="kw">fn</span> <span class="ident">create</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">value</span>: <span class="ident">serde_json</span>::<span class="ident">Value</span>) <span class="op">-&gt;</span> <span class="ident">Res</span>
+    <span class='doccomment'>/// Create a new game when provided:</span>
+    <span class='doccomment'>///    width:  Edm::Int64</span>
+    <span class='doccomment'>///    height: Edm::Int64</span>
+    <span class='doccomment'>///    k:      Edm::Int64</span>
+    <span class='kw'>fn</span> <span class='ident'>create</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>value</span>: <span class='ident'>serde_json</span>::<span class='ident'>Value</span>) <span class='op'>-&gt;</span> <span class='ident'>Res</span>
     {
-        <span class="kw">let</span> <span class="ident">gamek</span> <span class="op">=</span> <span class="ident">ConnectK</span>::<span class="ident">new</span>(<span class="ident">value</span>[<span class="string">&quot;width&quot;</span>].<span class="ident">as_i64</span>().<span class="ident">unwrap</span>() <span class="kw">as</span> <span class="ident">usize</span>,
-                                  <span class="ident">value</span>[<span class="string">&quot;height&quot;</span>].<span class="ident">as_i64</span>().<span class="ident">unwrap</span>() <span class="kw">as</span> <span class="ident">usize</span>,
-                                  <span class="ident">value</span>[<span class="string">&quot;k&quot;</span>].<span class="ident">as_i64</span>().<span class="ident">unwrap</span>() <span class="kw">as</span> <span class="ident">usize</span>,
-                                  <span class="kw">match</span> <span class="ident">value</span>[<span class="string">&quot;curr_player&quot;</span>].<span class="ident">as_i64</span>().<span class="ident">unwrap</span>(){
-                                      <span class="number">1</span> <span class="op">=&gt;</span> <span class="ident">Player</span>::<span class="ident">One</span>,
-                                      <span class="number">2</span> <span class="op">=&gt;</span> <span class="ident">Player</span>::<span class="ident">Two</span>,
-                                      _ <span class="op">=&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Found unacceptable player number!&quot;</span>)
-                                  });
-        <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> <span class="ident">GameServer</span>::<span class="ident">insert</span>(<span class="ident">gamek</span>.<span class="ident">clone</span>());
-        <span class="ident">Res</span>::<span class="ident">Created</span>(<span class="macro">json</span><span class="macro">!</span>(<span class="ident">convert</span>(<span class="ident">gamek</span>, <span class="ident">id</span>)))
+        <span class='kw'>let</span> <span class='ident'>gamek</span> <span class='op'>=</span> <span class='ident'>ConnectK</span>::<span class='ident'>new</span>(
+            <span class='ident'>value</span>[<span class='string'>&quot;width&quot;</span>].<span class='ident'>as_i64</span>().<span class='ident'>unwrap</span>() <span class='kw'>as</span> <span class='ident'>usize</span>,
+            <span class='ident'>value</span>[<span class='string'>&quot;height&quot;</span>].<span class='ident'>as_i64</span>().<span class='ident'>unwrap</span>() <span class='kw'>as</span> <span class='ident'>usize</span>,
+            <span class='ident'>value</span>[<span class='string'>&quot;k&quot;</span>].<span class='ident'>as_i64</span>().<span class='ident'>unwrap</span>() <span class='kw'>as</span> <span class='ident'>usize</span>,
+
+            <span class='kw'>match</span> <span class='ident'>value</span>[<span class='string'>&quot;curr_player&quot;</span>].<span class='ident'>as_i64</span>().<span class='ident'>unwrap</span>(){
+                <span class='number'>1</span> <span class='op'>=&gt;</span> <span class='ident'>Player</span>::<span class='ident'>One</span>,
+                <span class='number'>2</span> <span class='op'>=&gt;</span> <span class='ident'>Player</span>::<span class='ident'>Two</span>,
+                _ <span class='op'>=&gt;</span> <span class='macro'>panic</span><span class='macro'>!</span>(<span class='string'>&quot;Found unacceptable player number!&quot;</span>)
+            });
+
+        <span class='comment'>// ids correspond to location in array</span>
+        <span class='kw'>let</span> <span class='ident'>id</span> <span class='op'>=</span> <span class='ident'>GameServer</span>::<span class='ident'>insert</span>(<span class='ident'>gamek</span>.<span class='ident'>clone</span>());
+        <span class='ident'>Res</span>::<span class='ident'>Created</span>(<span class='macro'>json</span><span class='macro'>!</span>(<span class='ident'>convert</span>(<span class='ident'>gamek</span>, <span class='ident'>id</span>)))
     }
-    
-    <span class="kw">fn</span> <span class="ident">read</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <span class="ident">String</span>) <span class="op">-&gt;</span> <span class="ident">Res</span>
+
+    <span class='doccomment'>/// Get a specific game with the designated key</span>
+    <span class='kw'>fn</span> <span class='ident'>read</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>key</span>: <span class='ident'>String</span>) <span class='op'>-&gt;</span> <span class='ident'>Res</span>
     {
-        <span class="kw">let</span> <span class="ident">id</span>: <span class="ident">i64</span> <span class="op">=</span> <span class="ident">key</span>.<span class="ident">parse</span>().<span class="ident">unwrap</span>();
-        <span class="kw">match</span> <span class="ident">GameServer</span>::<span class="ident">select</span>(<span class="ident">id</span>) {
-            <span class="prelude-val">Some</span>(<span class="ident">game</span>) <span class="op">=&gt;</span> <span class="ident">Res</span>::<span class="ident">Succ</span>(<span class="prelude-val">Some</span>(<span class="macro">json</span><span class="macro">!</span>(<span class="ident">convert</span>(<span class="ident">game</span>, <span class="ident">id</span> <span class="kw">as</span> <span class="ident">usize</span>)))),
-            <span class="prelude-val">None</span>       <span class="op">=&gt;</span> <span class="ident">Res</span>::<span class="prelude-val">Err</span>(<span class="ident">Error</span>::<span class="ident">NotFound</span>(<span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;Games&quot;</span>)))
+        <span class='kw'>let</span> <span class='ident'>id</span>: <span class='ident'>i64</span> <span class='op'>=</span> <span class='ident'>key</span>.<span class='ident'>parse</span>().<span class='ident'>unwrap</span>();
+        <span class='kw'>match</span> <span class='ident'>GameServer</span>::<span class='ident'>select</span>(<span class='ident'>id</span>) {
+            <span class='prelude-val'>Some</span>(<span class='ident'>game</span>) <span class='op'>=&gt;</span> <span class='ident'>Res</span>::<span class='ident'>Succ</span>(<span class='prelude-val'>Some</span>(<span class='macro'>json</span><span class='macro'>!</span>(<span class='ident'>convert</span>(<span class='ident'>game</span>, <span class='ident'>id</span> <span class='kw'>as</span> <span class='ident'>usize</span>)))),
+            <span class='prelude-val'>None</span>       <span class='op'>=&gt;</span> <span class='ident'>Res</span>::<span class='prelude-val'>Err</span>(<span class='ident'>Error</span>::<span class='ident'>NotFound</span>(<span class='ident'>String</span>::<span class='ident'>from</span>(<span class='string'>&quot;Games&quot;</span>)))
         }
     }
-    
-    <span class="kw">fn</span> <span class="ident">read_list</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">Res</span>
+
+    <span class='doccomment'>/// Get a list of all available games</span>
+    <span class='kw'>fn</span> <span class='ident'>read_list</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>Res</span>
     {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">id</span>: <span class="ident">i64</span> <span class="op">=</span> <span class="op">-</span><span class="number">1</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">id</span> <span class="op">=</span> <span class="op">||</span> <span class="op">-&gt;</span> <span class="ident">i64</span> {<span class="ident">id</span> <span class="op">+=</span> <span class="number">1</span>; <span class="ident">id</span>};
+        <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>id</span>: <span class='ident'>i64</span> <span class='op'>=</span> <span class='op'>-</span><span class='number'>1</span>;
+        <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>id</span> <span class='op'>=</span> <span class='op'>||</span> <span class='op'>-&gt;</span> <span class='ident'>i64</span> {<span class='ident'>id</span> <span class='op'>+=</span> <span class='number'>1</span>; <span class='ident'>id</span>};
         
-        <span class="kw">let</span> <span class="ident">games</span> <span class="op">=</span> <span class="ident">GameServer</span>::<span class="ident">select_all</span>();
-        <span class="kw">let</span> <span class="ident">ogames</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Game</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">games</span>.<span class="ident">into_iter</span>()
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">game</span><span class="op">|</span> <span class="ident">convert</span>(<span class="ident">game</span>, <span class="ident">id</span>() <span class="kw">as</span> <span class="ident">usize</span>))
-            .<span class="ident">collect</span>();
+        <span class='kw'>let</span> <span class='ident'>games</span> <span class='op'>=</span> <span class='ident'>GameServer</span>::<span class='ident'>select_all</span>();
+        <span class='kw'>let</span> <span class='ident'>ogames</span>: <span class='ident'>Vec</span><span class='op'>&lt;</span><span class='ident'>Game</span><span class='op'>&gt;</span> <span class='op'>=</span> <span class='ident'>games</span>.<span class='ident'>into_iter</span>()
+            .<span class='ident'>map</span>(<span class='op'>|</span><span class='ident'>game</span><span class='op'>|</span> <span class='ident'>convert</span>(<span class='ident'>game</span>, <span class='ident'>id</span>() <span class='kw'>as</span> <span class='ident'>usize</span>))
+            .<span class='ident'>collect</span>();
         
-        <span class="ident">Res</span>::<span class="ident">Succ</span>(<span class="prelude-val">Some</span>(<span class="macro">json</span><span class="macro">!</span>(<span class="ident">ogames</span>)))
+        <span class='ident'>Res</span>::<span class='ident'>Succ</span>(<span class='prelude-val'>Some</span>(<span class='macro'>json</span><span class='macro'>!</span>(<span class='ident'>ogames</span>)))
     }
 }
 
 
-<span class="kw">fn</span> <span class="ident">run</span>()
+<span class='kw'>fn</span> <span class='ident'>run</span>()
 {
-    <span class="kw">let</span> <span class="ident">model</span> <span class="op">=</span> <span class="ident">ModelBuilder</span>::<span class="ident">new</span>(<span class="string">&quot;connect_four.svc&quot;</span>)
-        .<span class="ident">add</span>(<span class="ident">Games</span>::<span class="ident">declare</span>())
-        .<span class="ident">action</span>(<span class="string">&quot;play_move&quot;</span>, <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">edm</span>::<span class="ident">Type</span>::<span class="ident">String</span>], <span class="op">|</span><span class="ident">v</span>: <span class="ident">serde_json</span>::<span class="ident">Value</span><span class="op">|</span> <span class="op">-&gt;</span> <span class="ident">Res</span> {
 
-            <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> <span class="ident">v</span>[<span class="string">&quot;id&quot;</span>].<span class="ident">as_u64</span>().<span class="ident">expect</span>(<span class="string">&quot;Could not parse id&quot;</span>);
-            <span class="kw">let</span> <span class="ident">player_move</span> <span class="op">=</span> <span class="ident">v</span>[<span class="string">&quot;move&quot;</span>].<span class="ident">as_u64</span>().<span class="ident">expect</span>(<span class="string">&quot;Could not parse move&quot;</span>);
+    <span class='comment'>// Declare a new model, adding our previously defined Games EntitySet</span>
+    <span class='kw'>let</span> <span class='ident'>model</span> <span class='op'>=</span> <span class='ident'>ModelBuilder</span>::<span class='ident'>new</span>(<span class='string'>&quot;connect_four.svc&quot;</span>)
+        .<span class='ident'>add</span>(<span class='ident'>Games</span>::<span class='ident'>declare</span>())
+
+        <span class='comment'>// Defines an action &quot;play_move&quot;. OData actions are basically call that</span>
+        <span class='comment'>// can be used to mutate state. play_move calls the internal &quot;.insert&quot;</span>
+        <span class='comment'>// method of ConnectK</span>
+        .<span class='ident'>action</span>(<span class='string'>&quot;play_move&quot;</span>, <span class='macro'>vec</span><span class='macro'>!</span>[<span class='ident'>edm</span>::<span class='ident'>Type</span>::<span class='ident'>String</span>], <span class='op'>|</span><span class='ident'>v</span>: <span class='ident'>serde_json</span>::<span class='ident'>Value</span><span class='op'>|</span> <span class='op'>-&gt;</span> <span class='ident'>Res</span> {
+
+            <span class='kw'>let</span> <span class='ident'>id</span> <span class='op'>=</span> <span class='ident'>v</span>[<span class='string'>&quot;id&quot;</span>].<span class='ident'>as_u64</span>().<span class='ident'>expect</span>(<span class='string'>&quot;Could not parse id&quot;</span>);
+            <span class='kw'>let</span> <span class='ident'>player_move</span> <span class='op'>=</span> <span class='ident'>v</span>[<span class='string'>&quot;move&quot;</span>].<span class='ident'>as_u64</span>().<span class='ident'>expect</span>(<span class='string'>&quot;Could not parse move&quot;</span>);
             
-            <span class="kw">match</span> (<span class="kw-2">*</span><span class="ident">GAMES</span>.<span class="ident">lock</span>().<span class="ident">expect</span>(<span class="string">&quot;Could not unwrap&quot;</span>)).<span class="ident">get_mut</span>(<span class="ident">id</span> <span class="kw">as</span> <span class="ident">usize</span>) {
-                <span class="prelude-val">Some</span>(<span class="ident">game</span>) <span class="op">=&gt;</span> {
-                    <span class="kw">match</span> <span class="ident">game</span>.<span class="ident">insert</span>(<span class="ident">player_move</span> <span class="kw">as</span> <span class="ident">usize</span>) {
-                        <span class="prelude-val">Ok</span>(_) <span class="op">=&gt;</span> <span class="ident">Res</span>::<span class="ident">Succ</span>(<span class="prelude-val">None</span>),
-                        _     <span class="op">=&gt;</span> <span class="ident">Res</span>::<span class="prelude-val">Err</span>(<span class="ident">Error</span>::<span class="ident">InvalidParameter</span>)
+            <span class='kw'>match</span> (<span class='kw-2'>*</span><span class='ident'>GAMES</span>.<span class='ident'>lock</span>().<span class='ident'>expect</span>(<span class='string'>&quot;Could not unwrap&quot;</span>)).<span class='ident'>get_mut</span>(<span class='ident'>id</span> <span class='kw'>as</span> <span class='ident'>usize</span>) {
+                <span class='prelude-val'>Some</span>(<span class='ident'>game</span>) <span class='op'>=&gt;</span> {
+                    <span class='kw'>match</span> <span class='ident'>game</span>.<span class='ident'>insert</span>(<span class='ident'>player_move</span> <span class='kw'>as</span> <span class='ident'>usize</span>) {
+                        <span class='prelude-val'>Ok</span>(_) <span class='op'>=&gt;</span> <span class='ident'>Res</span>::<span class='ident'>Succ</span>(<span class='prelude-val'>None</span>),
+                        _     <span class='op'>=&gt;</span> <span class='ident'>Res</span>::<span class='prelude-val'>Err</span>(<span class='ident'>Error</span>::<span class='ident'>InvalidParameter</span>)
                     }
                     
                 },
-                <span class="prelude-val">None</span> <span class="op">=&gt;</span> <span class="ident">Res</span>::<span class="prelude-val">Err</span>(<span class="ident">Error</span>::<span class="ident">NotFound</span>(<span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;Games&quot;</span>)))
+                <span class='prelude-val'>None</span> <span class='op'>=&gt;</span> <span class='ident'>Res</span>::<span class='prelude-val'>Err</span>(<span class='ident'>Error</span>::<span class='ident'>NotFound</span>(<span class='ident'>String</span>::<span class='ident'>from</span>(<span class='string'>&quot;Games&quot;</span>)))
             }
         })
-        .<span class="ident">build</span>();
+        .<span class='ident'>build</span>();
 
-    <span class="kw">let</span> <span class="ident">svc</span> <span class="op">=</span> <span class="ident">ServiceBuilder</span>::<span class="ident">new</span>(<span class="string">&quot;api&quot;</span>)
-        .<span class="ident">add</span>(<span class="ident">model</span>)
-        .<span class="ident">build</span>();
+    <span class='comment'>// Declare a new service that uses our model. We&#39;ll now be able to say, access the first</span>
+    <span class='comment'>// game, by making a GET request to &lt;server:port&gt;/api/connect_four.svc/Games(0)</span>
+    <span class='kw'>let</span> <span class='ident'>svc</span> <span class='op'>=</span> <span class='ident'>ServiceBuilder</span>::<span class='ident'>new</span>(<span class='string'>&quot;api&quot;</span>)
+        .<span class='ident'>add</span>(<span class='ident'>model</span>)
+        .<span class='ident'>build</span>();
 
-    <span class="ident">svc</span>.<span class="ident">start</span>();
+    <span class='ident'>svc</span>.<span class='ident'>start</span>();
 }
 
 
-<span class="kw">fn</span> <span class="ident">main</span>()
+<span class='kw'>fn</span> <span class='ident'>main</span>()
 {
-    <span class="ident">run</span>();
+    <span class='ident'>run</span>();
 }
 
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">test</span> {
+<span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>test</span>)]</span>
+<span class='kw'>mod</span> <span class='ident'>test</span> {
     
-    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-    <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">thread</span>;
-    <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">time</span>::<span class="ident">Duration</span>;
-    <span class="kw">use</span> <span class="ident">hyper</span>::<span class="ident">Client</span>;
-    <span class="kw">use</span> <span class="ident">hyper</span>::<span class="ident">status</span>::<span class="ident">StatusCode</span>;
-    <span class="kw">use</span> <span class="ident">serde_json</span>::{<span class="ident">Value</span>, <span class="ident">from_reader</span>};
+    <span class='kw'>use</span> <span class='kw'>super</span>::<span class='kw-2'>*</span>;
+    <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>thread</span>;
+    <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>time</span>::<span class='ident'>Duration</span>;
+    <span class='kw'>use</span> <span class='ident'>hyper</span>::<span class='ident'>Client</span>;
+    <span class='kw'>use</span> <span class='ident'>hyper</span>::<span class='ident'>status</span>::<span class='ident'>StatusCode</span>;
+    <span class='kw'>use</span> <span class='ident'>serde_json</span>::{<span class='ident'>Value</span>, <span class='ident'>from_reader</span>};
     
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">check_service</span>()
+    <span class='attribute'>#[<span class='ident'>test</span>]</span>
+    <span class='kw'>fn</span> <span class='ident'>check_service</span>()
     {
-        <span class="ident">thread</span>::<span class="ident">spawn</span>(<span class="kw">move</span> <span class="op">||</span> { <span class="ident">run</span>(); });
+        <span class='ident'>thread</span>::<span class='ident'>spawn</span>(<span class='kw'>move</span> <span class='op'>||</span> { <span class='ident'>run</span>(); });
 
-        <span class="comment">// Technically a race ...but we are lazy so let&#39;s assume 200 msec is</span>
-        <span class="comment">// enough for server to startup</span>
-        <span class="ident">thread</span>::<span class="ident">sleep</span>(<span class="ident">Duration</span>::<span class="ident">from_millis</span>(<span class="number">200</span>));
+        <span class='comment'>// Technically a race ...but we are lazy so let&#39;s assume 200 msec is</span>
+        <span class='comment'>// enough for server to startup</span>
+        <span class='ident'>thread</span>::<span class='ident'>sleep</span>(<span class='ident'>Duration</span>::<span class='ident'>from_millis</span>(<span class='number'>200</span>));
 
-        { <span class="comment">// Test read list</span>
-            <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;Checking Read List&quot;</span>);
-            <span class="kw">let</span> <span class="ident">client</span> <span class="op">=</span> <span class="ident">Client</span>::<span class="ident">new</span>();
-            <span class="kw">let</span> <span class="ident">url</span> <span class="op">=</span> <span class="string">&quot;http://localhost:8080/api/connect_four.svc/Games&quot;</span>;
-            <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">client</span>.<span class="ident">get</span>(<span class="ident">url</span>).<span class="ident">send</span>().<span class="ident">unwrap</span>();
-            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">res</span>.<span class="ident">status</span>, <span class="ident">StatusCode</span>::<span class="prelude-val">Ok</span>);
+        { <span class='comment'>// Test read list</span>
+            <span class='macro'>println</span><span class='macro'>!</span>(<span class='string'>&quot;Checking Read List&quot;</span>);
+            <span class='kw'>let</span> <span class='ident'>client</span> <span class='op'>=</span> <span class='ident'>Client</span>::<span class='ident'>new</span>();
+            <span class='kw'>let</span> <span class='ident'>url</span> <span class='op'>=</span> <span class='string'>&quot;http://localhost:8080/api/connect_four.svc/Games&quot;</span>;
+            <span class='kw'>let</span> <span class='ident'>res</span> <span class='op'>=</span> <span class='ident'>client</span>.<span class='ident'>get</span>(<span class='ident'>url</span>).<span class='ident'>send</span>().<span class='ident'>unwrap</span>();
+            <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>res</span>.<span class='ident'>status</span>, <span class='ident'>StatusCode</span>::<span class='prelude-val'>Ok</span>);
         }
 
-        { <span class="comment">// Test create</span>
-            <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;Checking Create&quot;</span>);
-            <span class="kw">let</span> <span class="ident">client</span> <span class="op">=</span> <span class="ident">Client</span>::<span class="ident">new</span>();
-            <span class="kw">let</span> <span class="ident">url</span> <span class="op">=</span> <span class="string">&quot;http://localhost:8080/api/connect_four.svc/Games&quot;</span>;
-            <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="macro">json</span><span class="macro">!</span>({
-                <span class="string">&quot;curr_player&quot;</span>: <span class="number">1</span>,
-                <span class="string">&quot;height&quot;</span>: <span class="number">7</span>,
-                <span class="string">&quot;width&quot;</span>: <span class="number">5</span>,
-                <span class="string">&quot;k&quot;</span>: <span class="number">4</span>
+        { <span class='comment'>// Test create</span>
+            <span class='macro'>println</span><span class='macro'>!</span>(<span class='string'>&quot;Checking Create&quot;</span>);
+            <span class='kw'>let</span> <span class='ident'>client</span> <span class='op'>=</span> <span class='ident'>Client</span>::<span class='ident'>new</span>();
+            <span class='kw'>let</span> <span class='ident'>url</span> <span class='op'>=</span> <span class='string'>&quot;http://localhost:8080/api/connect_four.svc/Games&quot;</span>;
+            <span class='kw'>let</span> <span class='ident'>value</span> <span class='op'>=</span> <span class='macro'>json</span><span class='macro'>!</span>({
+                <span class='string'>&quot;curr_player&quot;</span>: <span class='number'>1</span>,
+                <span class='string'>&quot;height&quot;</span>: <span class='number'>7</span>,
+                <span class='string'>&quot;width&quot;</span>: <span class='number'>5</span>,
+                <span class='string'>&quot;k&quot;</span>: <span class='number'>4</span>
             });
 
-            <span class="comment">//The response includes the id of the game we created</span>
-            <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">client</span>.<span class="ident">post</span>(<span class="ident">url</span>).<span class="ident">body</span>(<span class="kw-2">&amp;</span><span class="ident">value</span>.<span class="ident">to_string</span>()).<span class="ident">send</span>().<span class="ident">unwrap</span>();
-            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">res</span>.<span class="ident">status</span>, <span class="ident">StatusCode</span>::<span class="ident">Created</span>);
+            <span class='comment'>//The response includes the id of the game we created</span>
+            <span class='kw'>let</span> <span class='ident'>res</span> <span class='op'>=</span> <span class='ident'>client</span>.<span class='ident'>post</span>(<span class='ident'>url</span>).<span class='ident'>body</span>(<span class='kw-2'>&amp;</span><span class='ident'>value</span>.<span class='ident'>to_string</span>()).<span class='ident'>send</span>().<span class='ident'>unwrap</span>();
+            <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>res</span>.<span class='ident'>status</span>, <span class='ident'>StatusCode</span>::<span class='ident'>Created</span>);
 
-            <span class="comment">//Parse response body</span>
-            <span class="kw">let</span> <span class="ident">data</span>: <span class="ident">Value</span> <span class="op">=</span> <span class="ident">from_reader</span>(<span class="ident">res</span>).<span class="ident">expect</span>(<span class="string">&quot;Unable to parse response!&quot;</span>);
-            <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> <span class="ident">data</span>[<span class="string">&quot;id&quot;</span>].<span class="ident">as_u64</span>().<span class="ident">expect</span>(<span class="string">&quot;Unable to parse id!&quot;</span>);
+            <span class='comment'>//Parse response body</span>
+            <span class='kw'>let</span> <span class='ident'>data</span>: <span class='ident'>Value</span> <span class='op'>=</span> <span class='ident'>from_reader</span>(<span class='ident'>res</span>).<span class='ident'>expect</span>(<span class='string'>&quot;Unable to parse response!&quot;</span>);
+            <span class='kw'>let</span> <span class='ident'>id</span> <span class='op'>=</span> <span class='ident'>data</span>[<span class='string'>&quot;id&quot;</span>].<span class='ident'>as_u64</span>().<span class='ident'>expect</span>(<span class='string'>&quot;Unable to parse id!&quot;</span>);
             
-            <span class="comment">//We should now be able to get the item we created</span>
-            <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;Checking Read Created&quot;</span>);
-            <span class="kw">let</span> <span class="ident">url</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;http://localhost:8080/api/connect_four.svc/Games({})&quot;</span>, <span class="ident">id</span>);
-            <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">client</span>.<span class="ident">get</span>(<span class="ident">url</span>).<span class="ident">send</span>().<span class="ident">unwrap</span>();
-            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">res</span>.<span class="ident">status</span>, <span class="ident">StatusCode</span>::<span class="prelude-val">Ok</span>);
+            <span class='comment'>//We should now be able to get the item we created</span>
+            <span class='macro'>println</span><span class='macro'>!</span>(<span class='string'>&quot;Checking Read Created&quot;</span>);
+            <span class='kw'>let</span> <span class='ident'>url</span> <span class='op'>=</span> <span class='kw-2'>&amp;</span><span class='macro'>format</span><span class='macro'>!</span>(<span class='string'>&quot;http://localhost:8080/api/connect_four.svc/Games({})&quot;</span>, <span class='ident'>id</span>);
+            <span class='kw'>let</span> <span class='ident'>res</span> <span class='op'>=</span> <span class='ident'>client</span>.<span class='ident'>get</span>(<span class='ident'>url</span>).<span class='ident'>send</span>().<span class='ident'>unwrap</span>();
+            <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>res</span>.<span class='ident'>status</span>, <span class='ident'>StatusCode</span>::<span class='prelude-val'>Ok</span>);
 
-            <span class="comment">// Lets now play a move</span>
-            <span class="kw">let</span> <span class="ident">url</span> <span class="op">=</span> <span class="string">&quot;http://localhost:8080/api/connect_four.svc/play_move&quot;</span>;
-            <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="macro">json</span><span class="macro">!</span>({
-                <span class="string">&quot;id&quot;</span>: <span class="ident">id</span>,
-                <span class="string">&quot;move&quot;</span>: <span class="number">0</span>
+            <span class='comment'>// Lets now play a move</span>
+            <span class='kw'>let</span> <span class='ident'>url</span> <span class='op'>=</span> <span class='string'>&quot;http://localhost:8080/api/connect_four.svc/play_move&quot;</span>;
+            <span class='kw'>let</span> <span class='ident'>value</span> <span class='op'>=</span> <span class='macro'>json</span><span class='macro'>!</span>({
+                <span class='string'>&quot;id&quot;</span>: <span class='ident'>id</span>,
+                <span class='string'>&quot;move&quot;</span>: <span class='number'>0</span>
             });
-            <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">value</span>.<span class="ident">to_string</span>());
-            <span class="ident">client</span>.<span class="ident">post</span>(<span class="ident">url</span>).<span class="ident">body</span>(<span class="kw-2">&amp;</span><span class="ident">value</span>.<span class="ident">to_string</span>()).<span class="ident">send</span>().<span class="ident">unwrap</span>();
+            <span class='macro'>println</span><span class='macro'>!</span>(<span class='string'>&quot;{}&quot;</span>, <span class='kw-2'>&amp;</span><span class='ident'>value</span>.<span class='ident'>to_string</span>());
+            <span class='ident'>client</span>.<span class='ident'>post</span>(<span class='ident'>url</span>).<span class='ident'>body</span>(<span class='kw-2'>&amp;</span><span class='ident'>value</span>.<span class='ident'>to_string</span>()).<span class='ident'>send</span>().<span class='ident'>unwrap</span>();
 
-            <span class="comment">// Check that the move was actually played</span>
-            <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;Checking Move Played&quot;</span>);
-            <span class="kw">let</span> <span class="ident">url</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;http://localhost:8080/api/connect_four.svc/Games({})&quot;</span>, <span class="ident">id</span>);
-            <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">url</span>);
-            <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">client</span>.<span class="ident">get</span>(<span class="ident">url</span>).<span class="ident">send</span>().<span class="ident">unwrap</span>();
-            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">res</span>.<span class="ident">status</span>, <span class="ident">StatusCode</span>::<span class="prelude-val">Ok</span>);
+            <span class='comment'>// Check that the move was actually played</span>
+            <span class='macro'>println</span><span class='macro'>!</span>(<span class='string'>&quot;Checking Move Played&quot;</span>);
+            <span class='kw'>let</span> <span class='ident'>url</span> <span class='op'>=</span> <span class='kw-2'>&amp;</span><span class='macro'>format</span><span class='macro'>!</span>(<span class='string'>&quot;http://localhost:8080/api/connect_four.svc/Games({})&quot;</span>, <span class='ident'>id</span>);
+            <span class='macro'>println</span><span class='macro'>!</span>(<span class='string'>&quot;{}&quot;</span>, <span class='ident'>url</span>);
+            <span class='kw'>let</span> <span class='ident'>res</span> <span class='op'>=</span> <span class='ident'>client</span>.<span class='ident'>get</span>(<span class='ident'>url</span>).<span class='ident'>send</span>().<span class='ident'>unwrap</span>();
+            <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>res</span>.<span class='ident'>status</span>, <span class='ident'>StatusCode</span>::<span class='prelude-val'>Ok</span>);
 
-            <span class="kw">let</span> <span class="ident">data</span>: <span class="ident">Value</span> <span class="op">=</span> <span class="ident">from_reader</span>(<span class="ident">res</span>).<span class="ident">expect</span>(<span class="string">&quot;Unable to parse response!&quot;</span>);
-            <span class="kw">let</span> <span class="ident">board</span> <span class="op">=</span> <span class="ident">data</span>[<span class="string">&quot;board&quot;</span>].<span class="ident">as_str</span>().<span class="ident">expect</span>(<span class="string">&quot;Unable to parse id!&quot;</span>);
-            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">board</span>.<span class="ident">chars</span>().<span class="ident">nth</span>(<span class="number">0</span>).<span class="ident">unwrap</span>(), <span class="string">&#39;1&#39;</span>);
+            <span class='kw'>let</span> <span class='ident'>data</span>: <span class='ident'>Value</span> <span class='op'>=</span> <span class='ident'>from_reader</span>(<span class='ident'>res</span>).<span class='ident'>expect</span>(<span class='string'>&quot;Unable to parse response!&quot;</span>);
+            <span class='kw'>let</span> <span class='ident'>board</span> <span class='op'>=</span> <span class='ident'>data</span>[<span class='string'>&quot;board&quot;</span>].<span class='ident'>as_str</span>().<span class='ident'>expect</span>(<span class='string'>&quot;Unable to parse id!&quot;</span>);
+            <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>board</span>.<span class='ident'>chars</span>().<span class='ident'>nth</span>(<span class='number'>0</span>).<span class='ident'>unwrap</span>(), <span class='string'>&#39;1&#39;</span>);
         }
 
     }

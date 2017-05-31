@@ -17,7 +17,7 @@
     
     
 </head>
-<body class="rustdoc mod">
+<body class="rustdoc">
     <!--[if lte IE 8]>
     <div class="warning">
         This old browser is unsupported and will most likely display funky
@@ -43,18 +43,20 @@
         </form>
     </nav>
 
-    <section id='main' class="content">
-<h1 class='fqn'><span class='in-band'>Crate <a class="mod" href=''>game_server</a></span><span class='out-of-band'><span id='render-detail'>
+    <section id='main' class="content mod">
+<h1 class='fqn'><span class='in-band'>Crate <a class='mod' href=''>game_server</a></span><span class='out-of-band'><span id='render-detail'>
                    <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                        [<span class='inner'>&#x2212;</span>]
                    </a>
-               </span><a class='srclink' href='../src/game_server/main.rs.html#1-211' title='goto source code'>[src]</a></span></h1>
-<div class='docblock'><p>Creates a game server that listens on port 8080;
-GET  localhost:8080/api/connect_four.svc/$metadata -&gt;  metadata
-GET  localhost:8080/api/connect_four.svc/Games     -&gt;  list of games
-GET  localhost:8080/api/connect_four.svc/Games(0)  -&gt;  game with id=0
-POST localhost:8080/api/connect_four.svc/Games     -&gt;  create a new game
-     with body = {&quot;curr_player&quot;: 1, &quot;height&quot;: 7, &quot;id&quot;: 4, &quot;k&quot;: 4,&quot;width&quot;: 5 }</p>
+               </span><a class='srclink' href='../src/game_server/main.rs.html#1-252' title='goto source code'>[src]</a></span></h1>
+<div class='docblock'><p>Creates a ConnectK game server that listens on port 8080;
+The server allows for client interaction using oData, and enables only
+direct support for a few of the necessary functions for the service.
+See the README for a detailed usage guide.</p>
+
+<p>A real system would likely use a database instead of global vector, but
+it works for our purposes without going crazy on the scope creep. lazy_static!
+is used for this purpose (see game_db.rs)</p>
 </div></section>
     <section id='search' class="content hidden"></section>
 

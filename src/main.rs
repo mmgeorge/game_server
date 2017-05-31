@@ -1,12 +1,15 @@
-//! Creates a game server that listens on port 8080;
-//! GET  localhost:8080/api/connect_four.svc/$metadata ->  metadata
-//! GET  localhost:8080/api/connect_four.svc/Games     ->  list of games
-//! GET  localhost:8080/api/connect_four.svc/Games(0)  ->  game with id=0
-//! POST localhost:8080/api/connect_four.svc/Games     ->  create a new game
-//!      with body = {"curr_player": 1, "height": 7, "id": 4, "k": 4,"width": 5 }
+//! Creates a ConnectK game server that listens on port 8080;
+//! The server allows for client interaction using oData, and enables only
+//! direct support for a few of the necessary functions for the service.
+//! See the README for a detailed usage guide.
+//!
+//! A real system would likely use a database instead of global vector, but
+//! it works for our purposes without going crazy on the scope creep. lazy_static!
+//! is used for this purpose (see game_db.rs)
+
 
 #[cfg(test)] 
-extern crate hyper;
+extern crate hyper; 
 
 extern crate connect_four;
 #[macro_use] extern crate odata;
@@ -25,7 +28,8 @@ use game_db::{GameServer, GAMES};
 use connect_four::connect_four::{ConnectK, Player, GameStatus};
 
 
-/// The entiy type for board
+/// Declares Game, the EntityType for the ConnectK class. This will get serialized
+/// by serde and sent as oData. 
 defEntity!(Game(keys => id) {
     id: Int64,
     width: Int64,
@@ -36,44 +40,72 @@ defEntity!(Game(keys => id) {
     board: String
 });
 
+
+/// Declares Games as an EntitySet containing entities of type Game. Once added to
+/// the model, it will be reachable via <...>/Games(I) where I can be used to access
+/// a game correponding to the id. These are stored in a vector of ConnectK.
 defEntitySet!(Games, Game);
 
 
-/// Converts internal ConnectK representation to oData model
+/// Convert the internal ConnectK representation to the serializable Game Entity type.
+/// Major difference here is that enums are converted to either numbers/strings, and
+/// the board is linerized and converted to a string.
 fn convert(game: ConnectK, id: usize) -> Game
 {
+    // Convert game board to a string
     let board: String = game.board_linear().into_iter().map(|x| x.to_string()).collect();
-    Game::new(id as i64, game.width as i64, game.height as i64, game.k as i16,
-              match game.curr_player {
-                  Player::One => 1,
-                  Player::Two => 2
-              },
-              match game.status {
-                  GameStatus::InProcess => String::from("InProcess"),
-                  GameStatus::PlayerOneWin => String::from("PlayerOneWin"),
-                  GameStatus::PlayerTwoWin => String::from("PlayerTwoWin"),
-                  GameStatus::Tie => String::from("Tie")
-              },
-              board)
+
+    // Game::new is provided to us by defEntity!
+    Game::new(
+        id as i64,
+        game.width as i64,
+        game.height as i64,
+        game.k as i16,
+
+        match game.curr_player {
+            Player::One => 1,
+            Player::Two => 2
+        },
+
+        match game.status {
+            GameStatus::InProcess => String::from("InProcess"),
+            GameStatus::PlayerOneWin => String::from("PlayerOneWin"),
+            GameStatus::PlayerTwoWin => String::from("PlayerTwoWin"),
+            GameStatus::Tie => String::from("Tie")
+        },
+
+        board)
 }
 
 
+/// Here we implement the EntitySet trait for our Games EntitySet. We only directly implement
+/// the functions we need. For mutating state, we provide an oData action "play_move" that
+/// is tied to the model. 
 impl EntitySet for Games {
 
+    /// Create a new game when provided:
+    ///    width:  Edm::Int64
+    ///    height: Edm::Int64
+    ///    k:      Edm::Int64
     fn create(&self, value: serde_json::Value) -> Res
     {
-        let gamek = ConnectK::new(value["width"].as_i64().unwrap() as usize,
-                                  value["height"].as_i64().unwrap() as usize,
-                                  value["k"].as_i64().unwrap() as usize,
-                                  match value["curr_player"].as_i64().unwrap(){
-                                      1 => Player::One,
-                                      2 => Player::Two,
-                                      _ => panic!("Found unacceptable player number!")
-                                  });
+        let gamek = ConnectK::new(
+            value["width"].as_i64().unwrap() as usize,
+            value["height"].as_i64().unwrap() as usize,
+            value["k"].as_i64().unwrap() as usize,
+
+            match value["curr_player"].as_i64().unwrap(){
+                1 => Player::One,
+                2 => Player::Two,
+                _ => panic!("Found unacceptable player number!")
+            });
+
+        // ids correspond to location in array
         let id = GameServer::insert(gamek.clone());
         Res::Created(json!(convert(gamek, id)))
     }
-    
+
+    /// Get a specific game with the designated key
     fn read(&self, key: String) -> Res
     {
         let id: i64 = key.parse().unwrap();
@@ -82,7 +114,8 @@ impl EntitySet for Games {
             None       => Res::Err(Error::NotFound(String::from("Games")))
         }
     }
-    
+
+    /// Get a list of all available games
     fn read_list(&self) -> Res
     {
         let mut id: i64 = -1;
@@ -100,8 +133,14 @@ impl EntitySet for Games {
 
 fn run()
 {
+
+    // Declare a new model, adding our previously defined Games EntitySet
     let model = ModelBuilder::new("connect_four.svc")
         .add(Games::declare())
+
+        // Defines an action "play_move". OData actions are basically call that
+        // can be used to mutate state. play_move calls the internal ".insert"
+        // method of ConnectK
         .action("play_move", vec![edm::Type::String], |v: serde_json::Value| -> Res {
 
             let id = v["id"].as_u64().expect("Could not parse id");
@@ -120,6 +159,8 @@ fn run()
         })
         .build();
 
+    // Declare a new service that uses our model. We'll now be able to say, access the first
+    // game, by making a GET request to <server:port>/api/connect_four.svc/Games(0)
     let svc = ServiceBuilder::new("api")
         .add(model)
         .build();

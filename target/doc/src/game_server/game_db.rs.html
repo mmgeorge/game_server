@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="rustdoc">
-    <meta name="description" content="Source to the Rust file `game_db.rs`.">
+    <meta name="description" content="Source to the Rust file `/cloud/classes/rust/game_server/src/game_db.rs`.">
     <meta name="keywords" content="rust, rustlang, rust-lang">
 
     <title>game_db.rs.html -- source</title>
@@ -17,7 +17,7 @@
     
     
 </head>
-<body class="rustdoc source">
+<body class="rustdoc">
     <!--[if lte IE 8]>
     <div class="warning">
         This old browser is unsupported and will most likely display funky
@@ -43,7 +43,7 @@
         </form>
     </nav>
 
-    <section id='main' class="content"><pre class="line-numbers"><span id="1"> 1</span>
+    <section id='main' class="content source"><pre class="line-numbers"><span id="1"> 1</span>
 <span id="2"> 2</span>
 <span id="3"> 3</span>
 <span id="4"> 4</span>
@@ -89,47 +89,63 @@
 <span id="44">44</span>
 <span id="45">45</span>
 <span id="46">46</span>
-</pre><pre class="rust ">
+<span id="47">47</span>
+<span id="48">48</span>
+<span id="49">49</span>
+<span id="50">50</span>
+<span id="51">51</span>
+<span id="52">52</span>
+<span id="53">53</span>
+<span id="54">54</span>
+</pre><pre class='rust '>
+<span class='doccomment'>//! This module basically defines a wrapper around the global vector</span>
+<span class='doccomment'>//! which is used to store active ConnectK games. A real game server</span>
+<span class='doccomment'>//! would want to use a database for performance and persistence. </span>
 
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::<span class="ident">Mutex</span>;
-<span class="kw">use</span> <span class="ident">connect_four</span>::<span class="ident">connect_four</span>::{<span class="ident">ConnectK</span>, <span class="ident">Player</span>};
+<span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>sync</span>::<span class='ident'>Mutex</span>;
+<span class='kw'>use</span> <span class='ident'>connect_four</span>::<span class='ident'>connect_four</span>::{<span class='ident'>ConnectK</span>, <span class='ident'>Player</span>};
 
 
-<span class="doccomment">/// Emulate a database server</span>
-<span class="macro">lazy_static</span><span class="macro">!</span> {
-    <span class="comment">// Vector index = key</span>
-    <span class="kw">pub</span> <span class="kw">static</span> <span class="kw-2">ref</span> <span class="ident">GAMES</span>: <span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ConnectK</span><span class="op">&gt;&gt;</span> <span class="op">=</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">vec</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">new</span>();
-        <span class="ident">vec</span>.<span class="ident">push</span>(<span class="ident">ConnectK</span>::<span class="ident">new</span>(<span class="number">5</span>, <span class="number">7</span>, <span class="number">4</span>, <span class="ident">Player</span>::<span class="ident">One</span>));
+<span class='doccomment'>/// Defines a global vector of ConnectK instances. Used to</span>
+<span class='doccomment'>/// emulate a database server</span>
+<span class='macro'>lazy_static</span><span class='macro'>!</span> {
+    <span class='comment'>// Vector index = key</span>
+    <span class='kw'>pub</span> <span class='kw'>static</span> <span class='kw-2'>ref</span> <span class='ident'>GAMES</span>: <span class='ident'>Mutex</span><span class='op'>&lt;</span><span class='ident'>Vec</span><span class='op'>&lt;</span><span class='ident'>ConnectK</span><span class='op'>&gt;&gt;</span> <span class='op'>=</span> {
+        <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>vec</span> <span class='op'>=</span> <span class='ident'>Vec</span>::<span class='ident'>new</span>();
+        <span class='ident'>vec</span>.<span class='ident'>push</span>(<span class='ident'>ConnectK</span>::<span class='ident'>new</span>(<span class='number'>5</span>, <span class='number'>7</span>, <span class='number'>4</span>, <span class='ident'>Player</span>::<span class='ident'>One</span>));
 
-        <span class="ident">Mutex</span>::<span class="ident">new</span>(<span class="ident">vec</span>)
+        <span class='ident'>Mutex</span>::<span class='ident'>new</span>(<span class='ident'>vec</span>)
     };
 }
 
-<span class="doccomment">/// Encapsolates emulated database server</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">GameServer</span> {}
 
-<span class="kw">impl</span> <span class="ident">GameServer</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">select</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> (<span class="ident">key</span>: <span class="ident">i64</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ConnectK</span><span class="op">&gt;</span>
+<span class='doccomment'>/// Acts to encapsolates access to the emulated database server</span>
+<span class='kw'>pub</span> <span class='kw'>struct</span> <span class='ident'>GameServer</span> {}
+
+<span class='kw'>impl</span> <span class='ident'>GameServer</span> {
+
+    <span class='doccomment'>/// Select the game with the given key</span>
+    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>select</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span><span class='op'>&gt;</span> (<span class='ident'>key</span>: <span class='ident'>i64</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>ConnectK</span><span class='op'>&gt;</span>
     {
-        <span class="kw">let</span> <span class="ident">guard</span> <span class="op">=</span> <span class="ident">GAMES</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>();
-        <span class="kw">match</span> (<span class="kw-2">*</span><span class="ident">guard</span>).<span class="ident">get</span>(<span class="ident">key</span> <span class="kw">as</span> <span class="ident">usize</span>) {
-            <span class="prelude-val">Some</span>(<span class="ident">game</span>) <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">game</span>.<span class="ident">clone</span>()),
-            <span class="prelude-val">None</span>       <span class="op">=&gt;</span> <span class="prelude-val">None</span>
+        <span class='kw'>let</span> <span class='ident'>guard</span> <span class='op'>=</span> <span class='ident'>GAMES</span>.<span class='ident'>lock</span>().<span class='ident'>unwrap</span>();
+        <span class='kw'>match</span> (<span class='kw-2'>*</span><span class='ident'>guard</span>).<span class='ident'>get</span>(<span class='ident'>key</span> <span class='kw'>as</span> <span class='ident'>usize</span>) {
+            <span class='prelude-val'>Some</span>(<span class='ident'>game</span>) <span class='op'>=&gt;</span> <span class='prelude-val'>Some</span>(<span class='ident'>game</span>.<span class='ident'>clone</span>()),
+            <span class='prelude-val'>None</span>       <span class='op'>=&gt;</span> <span class='prelude-val'>None</span>
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">select_all</span> () <span class="op">-&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ConnectK</span><span class="op">&gt;</span>
+    <span class='doccomment'>/// Select all games present in the datbase</span>
+    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>select_all</span> () <span class='op'>-&gt;</span> <span class='ident'>Vec</span><span class='op'>&lt;</span><span class='ident'>ConnectK</span><span class='op'>&gt;</span>
     {
-        (<span class="kw-2">*</span><span class="ident">GAMES</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>()).<span class="ident">clone</span>()
+        (<span class='kw-2'>*</span><span class='ident'>GAMES</span>.<span class='ident'>lock</span>().<span class='ident'>unwrap</span>()).<span class='ident'>clone</span>()
     }
-
-
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">insert</span> (<span class="ident">game</span>: <span class="ident">ConnectK</span>) <span class="op">-&gt;</span> <span class="ident">usize</span>
+    
+    <span class='doccomment'>/// Add a game to the databse</span>
+    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>insert</span> (<span class='ident'>game</span>: <span class='ident'>ConnectK</span>) <span class='op'>-&gt;</span> <span class='ident'>usize</span>
     {
-        <span class="kw">let</span> <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">games</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">GAMES</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>();
-        <span class="ident">games</span>.<span class="ident">push</span>(<span class="ident">game</span>);
-        <span class="ident">games</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span>
+        <span class='kw'>let</span> <span class='kw-2'>ref</span> <span class='kw-2'>mut</span> <span class='ident'>games</span> <span class='op'>=</span> <span class='kw-2'>*</span><span class='ident'>GAMES</span>.<span class='ident'>lock</span>().<span class='ident'>unwrap</span>();
+        <span class='ident'>games</span>.<span class='ident'>push</span>(<span class='ident'>game</span>);
+        <span class='ident'>games</span>.<span class='ident'>len</span>() <span class='op'>-</span> <span class='number'>1</span>
     }
 }
 
